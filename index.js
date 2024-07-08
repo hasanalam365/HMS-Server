@@ -62,13 +62,15 @@ async function run() {
 
 
             const email = req.body.email
+
             const filter = { email: email }
             const options = { upsert: true }
 
 
             const updateDoc = {
                 $set: {
-                    email: email
+                    email: email,
+
                 },
                 $addToSet: {
                     mywishList: req.body.wishlistId
@@ -78,6 +80,16 @@ async function run() {
             res.send(result)
 
         })
+
+        // //selected wishlist api
+        app.get('/wishlist/:email', async (req, res) => {
+            const email = req.params.email;
+
+            const query = { email: email }
+            const result = await wishlistCollection.findOne(query)
+            res.send(result)
+        })
+
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
