@@ -39,6 +39,9 @@ async function run() {
         await client.connect();
 
         const productCollection = client.db('ShopDB').collection('products');
+        const usersCollection = client.db('ShopDB').collection('users');
+        const wishlistCollection = client.db('ShopDB').collection('wishlist');
+
 
         //products api
         app.get('/products', async (req, res) => {
@@ -52,6 +55,28 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await productCollection.findOne(query)
             res.send(result)
+        })
+
+        //all wishlist apis
+        app.put('/wishlist', async (req, res) => {
+
+
+            const email = req.body.email
+            const filter = { email: email }
+            const options = { upsert: true }
+
+
+            const updateDoc = {
+                $set: {
+                    email: email
+                },
+                $addToSet: {
+                    mywishList: req.body.wishlistId
+                }
+            }
+            const result = await wishlistCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+
         })
 
         // await client.db("admin").command({ ping: 1 });
