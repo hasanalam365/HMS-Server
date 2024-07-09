@@ -59,14 +59,9 @@ async function run() {
 
         //all wishlist apis
         app.put('/wishlist', async (req, res) => {
-
-
             const email = req.body.email
-
             const filter = { email: email }
             const options = { upsert: true }
-
-
             const updateDoc = {
                 $set: {
                     email: email,
@@ -84,10 +79,21 @@ async function run() {
         // //selected wishlist api
         app.get('/wishlist/:email', async (req, res) => {
             const email = req.params.email;
+            const wishlistQuery = { email: email }
 
-            const query = { email: email }
-            const result = await wishlistCollection.findOne(query)
-            res.send(result)
+            const wishlistResult = await wishlistCollection.findOne(wishlistQuery)
+
+            if (!wishlistResult) {
+                res.status(404).send({ message: 'Wishlist not found' })
+            }
+
+            const wishlistIds = wishlistResult.mywishList.map(id => new ObjectId(id))
+            const dataQuery = { _id: { $in: wishlistIds } }
+
+            const dataResults = await productCollection.find(dataQuery).toArray()
+            res.send(dataResults)
+
+
         })
 
 
