@@ -58,7 +58,7 @@ async function run() {
             res.send(result)
         })
 
-        //all wishlist apis
+        // all wishlist apis
         app.put('/wishlist', async (req, res) => {
             const email = req.body.email
             const filter = { email: email }
@@ -77,7 +77,7 @@ async function run() {
 
         })
 
-        // //selected wishlist api
+        // selected wishlist api
         app.get('/wishlist/:email', async (req, res) => {
             const email = req.params.email;
             const wishlistQuery = { email: email }
@@ -97,8 +97,25 @@ async function run() {
 
         })
 
+        // delete mywishList item api
+        app.delete('/wishlist/:email/:wishlistIds', async (req, res) => {
+            const email = req.params.email;
+            const wishlistIds = req.params.wishlistIds
+            const query = { email: email }
 
-        //add to cart
+
+            const update = {
+                $pull: {
+                    mywishList: wishlistIds
+                }
+            }
+
+            const result = await wishlistCollection.updateOne(query, update)
+            res.send(result)
+        })
+
+
+        // get user cart api
         app.get('/addToCart/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
@@ -106,6 +123,7 @@ async function run() {
             res.send(result)
         })
 
+        // add to cart user item
         app.post('/addToCart', async (req, res) => {
             const cartInfo = req.body
 
@@ -113,44 +131,14 @@ async function run() {
             res.send(result)
         })
 
-        // app.put('/addToCart', async (req, res) => {
-        //     const email = req.body.email
-        //     const filter = { email: email }
-        //     const options = { upsert: true }
-        //     const updateDoc = {
-        //         $set: {
-        //             email: email,
+        // user cart item delete
+        app.delete('/addToCart/:id', async (req, res) => {
+            const id = req.params.id
 
-        //         },
-        //         $addToSet: {
-        //             addtoCart: req.body.addCartId
-        //         }
-        //     }
-        //     const result = await cartsCollection.updateOne(filter, updateDoc, options)
-        //     res.send(result)
-
-        // })
-
-        // app.get('/addToCart/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const cartQuery = { email: email }
-
-        //     const cartResult = await cartsCollection.findOne(cartQuery)
-
-        //     if (!cartResult) {
-        //         res.status(404).send({ message: 'cartlist not found' })
-        //     }
-
-        //     console.log(cartResult?.addtoCart?.map(id => console.log('id:', id)))
-        //     const cartId = cartResult?.addtoCart?.map(id => new ObjectId(id))
-        //     const dataQuery = { _id: { $in: cartId } }
-
-        //     const dataResults = await productCollection.find(dataQuery).toArray()
-        //     res.send(dataResults)
-
-
-        // })
-
+            const query = { _id: new ObjectId(id) }
+            const result = await cartsCollection.deleteOne(query)
+            res.send(result)
+        })
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
