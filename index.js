@@ -17,11 +17,6 @@ app.use(cors())
 
 
 
-// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.ruz3wge.mongodb.net/hmsshop`;
-
-// console.log(process.env.MONGO_USER, process.env.MONGO_PASS)
-
-
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.qvnsypp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -42,6 +37,7 @@ async function run() {
         const usersCollection = client.db('ShopDB').collection('users');
         const wishlistCollection = client.db('ShopDB').collection('wishlist');
         const cartsCollection = client.db('ShopDB').collection('carts');
+
 
 
         //products api
@@ -138,6 +134,45 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await cartsCollection.deleteOne(query)
             res.send(result)
+        })
+
+
+        // users api
+
+        app.post('/users', async (req, res) => {
+            const userInfo = req.body
+
+
+            const result = await usersCollection.insertOne(userInfo)
+            res.send(result)
+        })
+
+        app.put('/users', async (req, res) => {
+            const userInfo = req.body
+
+            const query = { email: userInfo.email }
+
+            const options = { uspsert: true }
+
+            const updateDoc = {
+                $set: {
+                    email: userInfo.email,
+                    userName: userInfo.userName,
+                    photoURL: userInfo.photoURL,
+                    phone: userInfo.phone,
+                    alternativePhone: userInfo.alternativePhone,
+                    division: userInfo.division,
+                    district: userInfo.district,
+                    thana: userInfo.thana,
+                    address: userInfo.address,
+                    currentLocation: userInfo.currentLocation
+
+                }
+            }
+
+            const result = await usersCollection.updateOne(query, updateDoc, options)
+            res.send(result)
+
         })
 
         // await client.db("admin").command({ ping: 1 });
