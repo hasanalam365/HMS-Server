@@ -138,42 +138,49 @@ async function run() {
 
 
         // users api
-
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await usersCollection.findOne(query)
+            res.send(result)
+        })
         app.post('/users', async (req, res) => {
             const userInfo = req.body
 
-
+            console.log(userInfo)
             const result = await usersCollection.insertOne(userInfo)
             res.send(result)
         })
 
-        app.put('/users', async (req, res) => {
-            const userInfo = req.body
+        // app.put('/users/:email', async (req, res) => {
+        //     const userInfo = req.body
+        //     const email = req.params.email
 
-            const query = { email: userInfo.email }
+        //     const query = { email: email }
 
-            const options = { uspsert: true }
+        //     const options = { uspsert: true }
 
-            const updateDoc = {
-                $set: {
-                    email: userInfo.email,
-                    userName: userInfo.userName,
-                    photoURL: userInfo.photoURL,
-                    phone: userInfo.phone,
-                    alternativePhone: userInfo.alternativePhone,
-                    division: userInfo.division,
-                    district: userInfo.district,
-                    thana: userInfo.thana,
-                    address: userInfo.address,
-                    currentLocation: userInfo.currentLocation
+        //     const updateDoc = {
+        //         $set: {
+        //             email: userInfo?.email,
+        //             userName: userInfo?.userName,
+        //             photoURL: userInfo?.photoURL,
+        //             phone: userInfo?.phone,
+        //             alternativePhone: userInfo?.alternativePhone,
+        //             division: userInfo?.division,
+        //             district: userInfo?.district,
+        //             thana: userInfo?.thana,
+        //             address: userInfo?.address,
+        //             currentLocation: userInfo?.currentLocation,
+        //             role: userInfo.role
 
-                }
-            }
+        //         }
+        //     }
 
-            const result = await usersCollection.updateOne(query, updateDoc, options)
-            res.send(result)
+        //     const result = await usersCollection.updateOne(query, updateDoc, options)
+        //     res.send(result)
 
-        })
+        // })
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
