@@ -37,6 +37,7 @@ async function run() {
         const usersCollection = client.db('ShopDB').collection('users');
         const wishlistCollection = client.db('ShopDB').collection('wishlist');
         const cartsCollection = client.db('ShopDB').collection('carts');
+        const ordersCollection = client.db('ShopDB').collection('orders');
 
 
 
@@ -181,6 +182,38 @@ async function run() {
         //     res.send(result)
 
         // })
+
+        app.post('/orders', async (req, res) => {
+            const orderInfo = req.body
+            const result = await ordersCollection.insertOne(orderInfo)
+            res.send(result)
+        })
+
+        app.put('/orders/:orderId', async (req, res) => {
+            const orderId = req.params.orderId;
+            const { name, phone, secondPhone, email, division, district, thana, address, currentLocation } = req.body
+            // console.log(orderId, name, phone, secondPhone, email, division, district, thana, address, currentLocation)
+            const query = { orderId: orderId }
+            const options = { upsert: true }
+
+            const updateDoc = {
+                $set: {
+                    name,
+                    phone,
+                    secondPhone,
+                    email,
+                    division,
+                    district,
+                    thana,
+                    address,
+                    currentLocation
+                }
+            }
+
+            const result = await ordersCollection.updateOne(query, updateDoc, options)
+            res.send(result)
+
+        })
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
