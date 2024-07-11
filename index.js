@@ -215,6 +215,18 @@ async function run() {
 
         })
 
+        //delete my carts ofter order confirm
+        app.delete('/mycarts-delete/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email: {
+                    $regex: email
+                }
+            }
+            const result = await cartsCollection.deleteMany(query)
+            res.send(result)
+        })
+
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
