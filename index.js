@@ -55,24 +55,14 @@ async function run() {
             res.send(result)
         })
 
-        // all wishlist apis
-        // app.put('/wishlist', async (req, res) => {
-        //     const email = req.body.email
-        //     const filter = { email: email }
-        //     const options = { upsert: true }
-        //     const updateDoc = {
-        //         $set: {
-        //             email: email,
 
-        //         },
-        //         $addToSet: {
-        //             mywishList: req.body.wishlistId
-        //         }
-        //     }
-        //     const result = await wishlistCollection.updateOne(filter, updateDoc, options)
-        //     res.send(result)
 
-        // })
+        app.get('/wishlist/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await wishlistCollection.find(query).toArray()
+            res.send(result)
+        })
 
         app.put('/wishlist', async (req, res) => {
             const wishlistInfo = req.body
@@ -80,14 +70,6 @@ async function run() {
             const id = req.body.productId
 
             const query = { email: email, productId: id }
-
-            // const queryResult=await wishlistCollection.find().toArray()
-            // const checkId=queryResult.map(product=>product.productId)
-            // const checkEmail=queryResult.map(product=>product.productId)
-
-            //             if (query) {
-            //                 return res.send({ message: 'this product already wishlist added' })
-            //             }
 
             const options = { upsert: true }
             const updateDoc = {
@@ -101,54 +83,18 @@ async function run() {
             res.send(result)
         })
 
-        // app.delete('/wishlist/:email/:id', async (req, res) => {
-        //     const email = req.params.email;
-        //     const id = req.params.id;
-        //     const query = {
-        //         email: email,
-        //         productId: new ObjectId(id)
-        //     }
+        app.delete('/wishlist/:email/:id', async (req, res) => {
+            const email = req.params.email;
+            const id = req.params.id;
+            const query = {
+                email: email,
+                productId: id
+            }
 
-        //     const result = await wishlistCollection.deleteOne(query)
-        //     res.send(result)
+            const result = await wishlistCollection.deleteOne(query)
+            res.send(result)
 
-        // })
-        // selected wishlist api
-        // app.get('/wishlist/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const wishlistQuery = { email: email }
-
-        //     const wishlistResult = await wishlistCollection.findOne(wishlistQuery)
-
-        //     if (!wishlistResult) {
-        //         res.status(404).send({ message: 'Wishlist not found' })
-        //     }
-
-        //     const wishlistIds = wishlistResult.mywishList.map(id => new ObjectId(id))
-        //     const dataQuery = { _id: { $in: wishlistIds } }
-
-        //     const dataResults = await productCollection.find(dataQuery).toArray()
-        //     res.send(dataResults)
-
-
-        // })
-
-        // delete mywishList item api
-        // app.delete('/wishlist/:email/:wishlistIds', async (req, res) => {
-        //     const email = req.params.email;
-        //     const wishlistIds = req.params.wishlistIds
-        //     const query = { email: email }
-
-
-        //     const update = {
-        //         $pull: {
-        //             mywishList: wishlistIds
-        //         }
-        //     }
-
-        //     const result = await wishlistCollection.updateOne(query, update)
-        //     res.send(result)
-        // })
+        })
 
 
         // get user cart api
