@@ -153,35 +153,35 @@ async function run() {
             res.send(result)
         })
 
-        // app.put('/users/:email', async (req, res) => {
-        //     const userInfo = req.body
-        //     const email = req.params.email
+        app.put('/users/:email', async (req, res) => {
+            const userInfo = req.body
+            const email = req.params.email
 
-        //     const query = { email: email }
+            const query = { email: email }
 
-        //     const options = { uspsert: true }
+            const options = { uspsert: true }
 
-        //     const updateDoc = {
-        //         $set: {
-        //             email: userInfo?.email,
-        //             userName: userInfo?.userName,
-        //             photoURL: userInfo?.photoURL,
-        //             phone: userInfo?.phone,
-        //             alternativePhone: userInfo?.alternativePhone,
-        //             division: userInfo?.division,
-        //             district: userInfo?.district,
-        //             thana: userInfo?.thana,
-        //             address: userInfo?.address,
-        //             currentLocation: userInfo?.currentLocation,
-        //             role: userInfo.role
+            const updateDoc = {
+                $set: {
+                    email: userInfo?.email,
+                    displayName: userInfo?.name,
+                    photoURL: userInfo?.photoURL,
+                    phone: userInfo?.phone,
 
-        //         }
-        //     }
+                    division: userInfo?.division,
+                    district: userInfo?.district,
+                    thana: userInfo?.thana,
+                    address: userInfo?.address,
 
-        //     const result = await usersCollection.updateOne(query, updateDoc, options)
-        //     res.send(result)
 
-        // })
+
+                }
+            }
+
+            const result = await usersCollection.updateOne(query, updateDoc, options)
+            res.send(result)
+
+        })
 
         app.post('/orders', async (req, res) => {
             const orderInfo = req.body
