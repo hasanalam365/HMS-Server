@@ -153,6 +153,14 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/newUser', async (req, res) => {
+            const userInfo = req.body;
+            const result = await usersCollection.insertOne(userInfo)
+            res.send(result)
+
+        })
+
+        //updated profile
         app.put('/users/:email', async (req, res) => {
             const userInfo = req.body
             const email = req.params.email
