@@ -161,12 +161,31 @@ async function run() {
             res.send(result)
         })
 
+        //profile show api
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await usersCollection.findOne(query)
             res.send(result)
         })
+
+
+        //admin check
+        app.get('/user/admin/:email', verifyToken, async (req, res) => {
+            const email = req.params.email
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'unautorized access' })
+            }
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            let admin = false
+            if (user) {
+                admin = user?.role === 'admin'
+            }
+
+            res.send({ admin })
+        })
+
         app.post('/users', async (req, res) => {
             const userInfo = req.body
 
@@ -177,13 +196,14 @@ async function run() {
 
         app.post('/newUser', async (req, res) => {
             const userInfo = req.body;
+
             const result = await usersCollection.insertOne(userInfo)
             res.send(result)
 
         })
 
         //updated profile
-        app.put('/users/:email', async (req, res) => {
+        app.put('/users-updated/:email', async (req, res) => {
             const userInfo = req.body
             const email = req.params.email
 
@@ -213,10 +233,11 @@ async function run() {
 
         })
 
-        app.patch('/users/admin/:email', async (req, res) => {
-            const email = req.params.email;
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+
             const role = req.body.role
-            const filter = { email: email }
+            const filter = { _id: new ObjectId(id) }
 
             const updateDoc = {
                 $set: {
