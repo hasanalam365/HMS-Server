@@ -181,6 +181,27 @@ async function run() {
 
         })
 
+        app.patch('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const role = req.body.role
+            const filter = { email: email }
+
+            const updateDoc = {
+                $set: {
+                    role: role
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        app.delete('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await usersCollection.deleteOne(query)
+            res.send(result)
+        })
+
 
         //order related api
         app.post('/orders', async (req, res) => {
