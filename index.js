@@ -124,6 +124,11 @@ async function run() {
 
 
         // users api
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray()
+            res.send(result)
+        })
+
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
@@ -176,6 +181,8 @@ async function run() {
 
         })
 
+
+        //order related api
         app.post('/orders', async (req, res) => {
             const orderInfo = req.body
             const result = await ordersCollection.insertOne(orderInfo)
