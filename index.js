@@ -44,10 +44,33 @@ async function run() {
         //jwt related api
         app.post('/jwt', async (req, res) => {
             const user = req.body
+
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3h' })
             res.send({ token })
         })
 
+
+        //middlewares
+        const verifyToken = (req, res, next) => {
+            // console.log(req.headers.authorization)
+
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'forbidden access' })
+            }
+
+            const token = req.headers.authorization.split(' ')[1]
+
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'forbidden access' })
+                }
+                req.decoded = decoded
+                next()
+            })
+
+
+            // next()
+        }
 
         //products api
         app.get('/products', async (req, res) => {
@@ -132,7 +155,8 @@ async function run() {
 
 
         // users api
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
+            // console.log(req.headers)
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
@@ -146,7 +170,7 @@ async function run() {
         app.post('/users', async (req, res) => {
             const userInfo = req.body
 
-            console.log(userInfo)
+
             const result = await usersCollection.insertOne(userInfo)
             res.send(result)
         })
