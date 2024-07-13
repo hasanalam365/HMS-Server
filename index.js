@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-// const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
 // const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // const axios = require('axios');
@@ -39,6 +39,14 @@ async function run() {
         const cartsCollection = client.db('ShopDB').collection('carts');
         const ordersCollection = client.db('ShopDB').collection('orders');
 
+
+
+        //jwt related api
+        app.post('/jwt', async (req, res) => {
+            const user = req.body
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3h' })
+            res.send({ token })
+        })
 
 
         //products api
