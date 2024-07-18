@@ -204,6 +204,11 @@ async function run() {
         app.post('/users', async (req, res) => {
             const userInfo = req.body
 
+            const user = await usersCollection.findOne({ email: userInfo.email })
+
+            if (user && user.email === userInfo.email) {
+                return res.send({ message: 'already exixts user' })
+            }
 
             const result = await usersCollection.insertOne(userInfo)
             res.send(result)
@@ -323,6 +328,16 @@ async function run() {
             const result = await ordersCollection.find().toArray()
             res.send(result)
         })
+
+        //delete order from admin
+        app.delete('/order-delete/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const result = await ordersCollection.deleteOne(query)
+            res.send(result)
+        })
+
         app.get('/view-order/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
