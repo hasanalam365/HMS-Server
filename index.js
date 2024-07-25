@@ -345,6 +345,72 @@ async function run() {
             res.send(result)
         })
 
+        // app.delete('/view-order-delete/:orderId/:id', async (req, res) => {
+        //     const orderId = req.params.orderId;
+        //     const productId = req.params.id;
+
+        //     try {
+        //         // Find the order by orderId
+        //         const query = { orderId: orderId };
+        //         const orderData = await ordersCollection.findOne(query);
+
+        //         if (!orderData) {
+        //             return res.status(404).json({ message: 'Order not found' });
+        //         }
+
+        //         // Filter out the product with the given productId
+        //         const updatedProducts = orderData.allProducts.filter(product => product._id !== productId);
+
+        //         // Update the order with the new list of products
+        //         const updateResult = await ordersCollection.updateOne(
+        //             query,
+        //             { $set: { allProducts: updatedProducts } }
+        //         );
+
+        //         res.send(updateResult)
+        //     } catch (error) {
+        //         console.error(error);
+        //         res.status(500).json({ message: 'An error occurred' });
+        //     }
+        // });
+
+        app.delete('/view-order-delete/:orderId/:index', async (req, res) => {
+            const orderId = req.params.orderId;
+            const index = parseInt(req.params.index);
+
+            try {
+                // Find the order by orderId
+                const query = { orderId: orderId };
+                const orderData = await ordersCollection.findOne(query);
+
+                if (!orderData) {
+                    return res.status(404).json({ message: 'Order not found' });
+                }
+
+                // Check if the index is within the bounds of the allProducts array
+                if (index < 0 || index >= orderData.allProducts.length) {
+                    return res.status(400).json({ message: 'Invalid index' });
+                }
+
+                // Remove the product at the specified index
+                const updatedProducts = [
+                    ...orderData.allProducts.slice(0, index),
+                    ...orderData.allProducts.slice(index + 1)
+                ];
+
+                // Update the order with the new list of products
+                const updateResult = await ordersCollection.updateOne(
+                    query,
+                    { $set: { allProducts: updatedProducts } }
+                );
+
+                res.send(updateResult);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: 'An error occurred' });
+            }
+        });
+
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
