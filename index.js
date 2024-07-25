@@ -37,7 +37,8 @@ async function run() {
         const usersCollection = client.db('ShopDB').collection('users');
         const wishlistCollection = client.db('ShopDB').collection('wishlist');
         const cartsCollection = client.db('ShopDB').collection('carts');
-        const ordersCollection = client.db('ShopDB').collection('orders');
+        const pendingOrderCollection = client.db('ShopDB').collection('pendingOrders');
+        const confirmOrderCollection = client.db('ShopDB').collection('confirmOrders');
 
 
 
@@ -281,7 +282,7 @@ async function run() {
         //order related api
         app.post('/orders', async (req, res) => {
             const orderInfo = req.body
-            const result = await ordersCollection.insertOne(orderInfo)
+            const result = await pendingOrderCollection.insertOne(orderInfo)
             res.send(result)
         })
 
@@ -306,7 +307,7 @@ async function run() {
                 }
             }
 
-            const result = await ordersCollection.updateOne(query, updateDoc, options)
+            const result = await pendingOrderCollection.updateOne(query, updateDoc, options)
             res.send(result)
 
         })
@@ -325,7 +326,7 @@ async function run() {
 
         //order related api
         app.get('/all-orders', verifyToken, verifyAdmin, async (req, res) => {
-            const result = await ordersCollection.find().toArray()
+            const result = await pendingOrderCollection.find().toArray()
             res.send(result)
         })
 
@@ -334,16 +335,22 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
-            const result = await ordersCollection.deleteOne(query)
+            const result = await pendingOrderCollection.deleteOne(query)
             res.send(result)
         })
 
         app.get('/view-order/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
-            const result = await ordersCollection.findOne(query)
+            const result = await pendingOrderCollection.findOne(query)
             res.send(result)
         })
+
+        //get stock count 
+        // app.get('/stockCount/:id', async (req, res) => {
+        //     const id = req.params.id
+        //     console.log(id)
+        // })
 
         // app.delete('/view-order-delete/:orderId/:id', async (req, res) => {
         //     const orderId = req.params.orderId;
@@ -352,7 +359,7 @@ async function run() {
         //     try {
         //         // Find the order by orderId
         //         const query = { orderId: orderId };
-        //         const orderData = await ordersCollection.findOne(query);
+        //         const orderData = await pendingOrderCollection.findOne(query);
 
         //         if (!orderData) {
         //             return res.status(404).json({ message: 'Order not found' });
@@ -362,7 +369,7 @@ async function run() {
         //         const updatedProducts = orderData.allProducts.filter(product => product._id !== productId);
 
         //         // Update the order with the new list of products
-        //         const updateResult = await ordersCollection.updateOne(
+        //         const updateResult = await pendingOrderCollection.updateOne(
         //             query,
         //             { $set: { allProducts: updatedProducts } }
         //         );
@@ -374,6 +381,21 @@ async function run() {
         //     }
         // });
 
+
+        //order confirm product by admin
+        app.get('/confirmOrder/:orderId', async (req, res) => {
+            const orderId = req.params.orderId
+            const result = await confirmOrderCollection.find({ orderId }).toArray()
+            res.send(result)
+        })
+
+        app.post('/confirmOrder', async (req, res) => {
+            const confimOrder = req.body
+            const result = await confirmOrderCollection.insertOne(confimOrder)
+            res.send(result)
+        })
+
+
         app.delete('/view-order-delete/:orderId/:index', async (req, res) => {
             const orderId = req.params.orderId;
             const index = parseInt(req.params.index);
@@ -381,7 +403,7 @@ async function run() {
             try {
                 // Find the order by orderId
                 const query = { orderId: orderId };
-                const orderData = await ordersCollection.findOne(query);
+                const orderData = await pendingOrderCollection.findOne(query);
 
                 if (!orderData) {
                     return res.status(404).json({ message: 'Order not found' });
@@ -399,7 +421,7 @@ async function run() {
                 ];
 
                 // Update the order with the new list of products
-                const updateResult = await ordersCollection.updateOne(
+                const updateResult = await pendingOrderCollection.updateOne(
                     query,
                     { $set: { allProducts: updatedProducts } }
                 );
