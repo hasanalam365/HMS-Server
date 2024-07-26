@@ -346,6 +346,16 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/stockProductCount/:productIds', async (req, res) => {
+
+            const ids = req.params.productIds.split(',').map(id => parseInt(id.trim()))
+            const query = { productId: { $in: ids } }
+            const matchingProducts = await productCollection.find(query).toArray()
+            console.log(matchingProducts)
+            res.send(matchingProducts)
+
+        })
+
         //get stock count 
         // app.get('/stockCount/:id', async (req, res) => {
         //     const id = req.params.id
