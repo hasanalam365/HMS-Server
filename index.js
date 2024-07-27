@@ -153,8 +153,31 @@ async function run() {
         })
 
         // add to cart user item
+        // app.post('/addToCart', async (req, res) => {
+        //     const cartInfo = req.body
+
+        //     const result = await cartsCollection.insertOne(cartInfo)
+        //     res.send(result)
+        // })
+
         app.post('/addToCart', async (req, res) => {
             const cartInfo = req.body
+
+
+
+            const query = { productId: cartInfo.productId }
+            const checkProduct = await cartsCollection.findOne(query)
+            if (checkProduct) {
+                const options = { upsert: true }
+                const updateDoc = {
+                    $set: {
+                        quantity: cartInfo.quantity + checkProduct.quantity
+                    }
+                }
+                const resultCart = await cartsCollection.updateOne(query, updateDoc, options)
+                return res.send(resultCart)
+            }
+
 
             const result = await cartsCollection.insertOne(cartInfo)
             res.send(result)
@@ -351,7 +374,7 @@ async function run() {
             const ids = req.params.productIds.split(',').map(id => parseInt(id.trim()))
             const query = { productId: { $in: ids } }
             const matchingProducts = await productCollection.find(query).toArray()
-            console.log(matchingProducts)
+
             res.send(matchingProducts)
 
         })
