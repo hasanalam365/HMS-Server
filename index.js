@@ -192,6 +192,17 @@ async function run() {
             res.send(result)
         })
 
+        //check quantity checkout page:
+        // app.put('/updatedQuantity/:id',async(req,res)=>{
+        //     const productId=req.params.id
+        //     const query={productId:productId}
+        //     const options={upsert:true}
+        //     const updateDoc={
+        //         $set:{
+        //             quantity:
+        //         }
+        //     }
+        // })
 
         // all users  api
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
