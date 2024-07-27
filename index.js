@@ -38,6 +38,7 @@ async function run() {
         const wishlistCollection = client.db('ShopDB').collection('wishlist');
         const cartsCollection = client.db('ShopDB').collection('carts');
         const pendingOrderCollection = client.db('ShopDB').collection('pendingOrders');
+        const selectedOrderCollection = client.db('ShopDB').collection('selectedOrders');
         const confirmOrderCollection = client.db('ShopDB').collection('confirmOrders');
 
 
@@ -427,15 +428,15 @@ async function run() {
 
 
         //order confirm product by admin
-        app.get('/confirmOrder/:orderId', async (req, res) => {
+        app.get('/selectedOrder/:orderId', async (req, res) => {
             const orderId = req.params.orderId
-            const result = await confirmOrderCollection.find({ orderId }).toArray()
+            const result = await selectedOrderCollection.find({ orderId }).toArray()
             res.send(result)
         })
 
-        app.post('/confirmOrder', async (req, res) => {
-            const confimOrder = req.body
-            const result = await confirmOrderCollection.insertOne(confimOrder)
+        app.post('/selectedOrder', async (req, res) => {
+            const selectedOrders = req.body
+            const result = await selectedOrderCollection.insertOne(selectedOrders)
             res.send(result)
         })
 
@@ -476,6 +477,32 @@ async function run() {
                 res.status(500).json({ message: 'An error occurred' });
             }
         });
+
+        app.post('/confirmOrder', async (req, res) => {
+            const orderAllDetails = req.body
+            const result = await confirmOrderCollection.insertOne(orderAllDetails)
+            res.send(result)
+        })
+
+        //delete pending orders collection
+        app.delete('/pendingOrders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await pendingOrderCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        //deleted selected collection products
+        app.delete('/selectedOrders/:orderId', async (req, res) => {
+            const orderId = req.params.orderId
+            const query = {
+                orderId: {
+                    $regex: orderId
+                }
+            }
+            const result = await selectedOrderCollection.deleteMany(query)
+            res.send(result)
+        })
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
