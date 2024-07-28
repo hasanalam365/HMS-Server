@@ -40,6 +40,7 @@ async function run() {
         const pendingOrderCollection = client.db('ShopDB').collection('pendingOrders');
         const selectedOrderCollection = client.db('ShopDB').collection('selectedOrders');
         const confirmOrderCollection = client.db('ShopDB').collection('confirmOrders');
+        const orderStatusCollection = client.db('ShopDB').collection('orderStatus');
 
 
 
@@ -356,6 +357,12 @@ async function run() {
                 }
             }
             const result = await cartsCollection.deleteMany(query)
+            res.send(result)
+        })
+
+        app.post('/orderStatus', async (req, res) => {
+            const status = req.body
+            const result = await orderStatusCollection.insertOne(status)
             res.send(result)
         })
 
