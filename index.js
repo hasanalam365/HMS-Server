@@ -392,8 +392,14 @@ async function run() {
 
         //order related api
         app.get('/all-orders', verifyToken, verifyAdmin, async (req, res) => {
-            const result = await pendingOrderCollection.find().sort({ _id: -1 }).toArray()
-            res.send(result)
+
+            const { search } = req.query;
+            let query = {}
+            if (search) {
+                query = { orderId: new RegExp(search, 'i') };
+            }
+            const result = await pendingOrderCollection.find(query).sort({ _id: -1 }).toArray();
+            res.send(result);
         })
 
         //delete order from admin
