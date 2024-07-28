@@ -392,7 +392,7 @@ async function run() {
 
         //order related api
         app.get('/all-orders', verifyToken, verifyAdmin, async (req, res) => {
-            const result = await pendingOrderCollection.find().toArray()
+            const result = await pendingOrderCollection.find().sort({ _id: -1 }).toArray()
             res.send(result)
         })
 
