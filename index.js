@@ -360,9 +360,33 @@ async function run() {
             res.send(result)
         })
 
+        //order Status related api
+        app.get('/orderStatus', async (req, res) => {
+            const result = await orderStatusCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get('/orderStatus/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await orderStatusCollection.find(query).toArray()
+            res.send(result)
+        })
         app.post('/orderStatus', async (req, res) => {
             const status = req.body
             const result = await orderStatusCollection.insertOne(status)
+            res.send(result)
+        })
+
+        app.patch('/orderStatus/:orderId', async (req, res) => {
+            const orderId = req.params.orderId;
+            const query = { orderId: orderId }
+            const updateDoc = {
+                $set: {
+                    status: 'confirmed'
+                }
+            }
+            const result = await orderStatusCollection.updateOne(query, updateDoc)
             res.send(result)
         })
 
