@@ -426,40 +426,7 @@ async function run() {
 
         })
 
-        //get stock count 
-        // app.get('/stockCount/:id', async (req, res) => {
-        //     const id = req.params.id
-        //     console.log(id)
-        // })
 
-        // app.delete('/view-order-delete/:orderId/:id', async (req, res) => {
-        //     const orderId = req.params.orderId;
-        //     const productId = req.params.id;
-
-        //     try {
-        //         // Find the order by orderId
-        //         const query = { orderId: orderId };
-        //         const orderData = await pendingOrderCollection.findOne(query);
-
-        //         if (!orderData) {
-        //             return res.status(404).json({ message: 'Order not found' });
-        //         }
-
-        //         // Filter out the product with the given productId
-        //         const updatedProducts = orderData.allProducts.filter(product => product._id !== productId);
-
-        //         // Update the order with the new list of products
-        //         const updateResult = await pendingOrderCollection.updateOne(
-        //             query,
-        //             { $set: { allProducts: updatedProducts } }
-        //         );
-
-        //         res.send(updateResult)
-        //     } catch (error) {
-        //         console.error(error);
-        //         res.status(500).json({ message: 'An error occurred' });
-        //     }
-        // });
 
 
         //order confirm product by admin
@@ -512,6 +479,20 @@ async function run() {
                 res.status(500).json({ message: 'An error occurred' });
             }
         });
+
+        //order confirm related api
+        app.get('/confirmOrder', async (req, res) => {
+
+
+            const { search } = req.query;
+            let query = {}
+            if (search) {
+                query = { orderId: new RegExp(search, 'i') };
+            }
+            const result = await confirmOrderCollection.find(query).sort({ _id: -1 }).toArray();
+            res.send(result);
+
+        })
 
         app.post('/confirmOrder', async (req, res) => {
             const orderAllDetails = req.body
