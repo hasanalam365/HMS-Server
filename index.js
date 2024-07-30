@@ -427,7 +427,27 @@ async function run() {
         })
 
 
+        app.patch('/stockProductCount/:productId/:quantity', async (req, res) => {
+            const id = parseInt(req.params.productId);
+            const quantity = parseInt(req.params.quantity)
+            const query = { productId: id }
 
+            const product = await productCollection.findOne(query)
+
+            if (product) {
+                const updateDoc = {
+                    $set: {
+                        stock: product.stock - quantity
+                    }
+                }
+                const result = await productCollection.updateOne(query, updateDoc)
+                res.send(result)
+            }
+            else {
+                res.send({ message: 'undefined' })
+            }
+
+        })
 
         //order confirm product by admin
         app.get('/selectedOrder/:orderId', async (req, res) => {
