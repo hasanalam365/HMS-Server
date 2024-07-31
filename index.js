@@ -127,7 +127,8 @@ async function run() {
                 $set: {
                     email: email,
                     productId: id,
-                    product: wishlistInfo.product
+                    product: wishlistInfo.product,
+                    quantity: wishlistInfo.quantity
                 }
             }
             const result = await wishlistCollection.updateOne(query, updateDoc, options)
