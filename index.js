@@ -108,7 +108,7 @@ async function run() {
 
 
 
-        app.get('/wishlist/:email', verifyToken, async (req, res) => {
+        app.get('/wishlist/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await wishlistCollection.find(query).toArray()
@@ -134,13 +134,10 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/wishlist/:email/:id', verifyToken, async (req, res) => {
-            const email = req.params.email;
+        app.delete('/wishlist/:id', async (req, res) => {
+
             const id = req.params.id;
-            const query = {
-                email: email,
-                productId: id
-            }
+            const query = { _id: new ObjectId(id) }
 
             const result = await wishlistCollection.deleteOne(query)
             res.send(result)
@@ -355,7 +352,7 @@ async function run() {
         })
 
         //delete my carts ofter order confirm
-        app.delete('/mycarts-delete/:email', verifyToken, async (req, res) => {
+        app.delete('/mycarts-delete/:email', async (req, res) => {
             const email = req.params.email;
             const query = {
                 email: {
@@ -417,7 +414,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/view-order/:id', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/view-order/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await pendingOrderCollection.findOne(query)
