@@ -12,7 +12,9 @@ const port = process.env.PORT || 5000;
 
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: ['http://localhost:5173', 'hms-shop.firebaseapp.com', 'hms-shop.web.app']
+}))
 
 
 
@@ -31,7 +33,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const productCollection = client.db('ShopDB').collection('products');
         const usersCollection = client.db('ShopDB').collection('users');
@@ -106,7 +108,7 @@ async function run() {
 
 
 
-        app.get('/wishlist/:email', async (req, res) => {
+        app.get('/wishlist/:email', verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await wishlistCollection.find(query).toArray()
@@ -132,7 +134,7 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/wishlist/:email/:id', async (req, res) => {
+        app.delete('/wishlist/:email/:id', verifyToken, async (req, res) => {
             const email = req.params.email;
             const id = req.params.id;
             const query = {
@@ -212,13 +214,19 @@ async function run() {
         })
 
         //profile show api
+        // app.get('/user/:email', async (req, res) => {
+        //     const email = req.params.email
+        //     const query = { email: email }
+        //     const result = await usersCollection.findOne(query)
+        //     res.send(result)
+        // })
+
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await usersCollection.findOne(query)
             res.send(result)
         })
-
 
         //admin check
         app.get('/user/admin/:email', verifyToken, async (req, res) => {
@@ -258,7 +266,7 @@ async function run() {
         })
 
         //updated profile
-        app.put('/users-updated/:email', async (req, res) => {
+        app.put('/users-updated/:email', verifyToken, async (req, res) => {
             const userInfo = req.body
             const email = req.params.email
 
@@ -347,7 +355,7 @@ async function run() {
         })
 
         //delete my carts ofter order confirm
-        app.delete('/mycarts-delete/:email', async (req, res) => {
+        app.delete('/mycarts-delete/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = {
                 email: {
@@ -364,7 +372,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/orderStatus/:email', async (req, res) => {
+        app.get('/orderStatus/:email', verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await orderStatusCollection.find(query).toArray()
@@ -401,7 +409,7 @@ async function run() {
         })
 
         //delete order from admin
-        app.delete('/order-delete/:id', async (req, res) => {
+        app.delete('/order-delete/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
@@ -409,7 +417,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/view-order/:id', async (req, res) => {
+        app.get('/view-order/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await pendingOrderCollection.findOne(query)
@@ -501,7 +509,7 @@ async function run() {
         });
 
         //order confirm related api
-        app.get('/confirmOrder', async (req, res) => {
+        app.get('/confirmOrder', verifyToken, verifyAdmin, async (req, res) => {
 
 
             const { search } = req.query;
@@ -514,14 +522,14 @@ async function run() {
 
         })
 
-        app.get('/details-confirm-order/:id', async (req, res) => {
+        app.get('/details-confirm-order/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await confirmOrderCollection.findOne(query)
             res.send(result)
         })
 
-        app.post('/confirmOrder', async (req, res) => {
+        app.post('/confirmOrder', verifyToken, verifyAdmin, async (req, res) => {
             const orderAllDetails = req.body
             const result = await confirmOrderCollection.insertOne(orderAllDetails)
             res.send(result)
@@ -555,7 +563,7 @@ async function run() {
         })
 
         //add product
-        app.post('/add-product', async (req, res) => {
+        app.post('/add-product', verifyToken, verifyAdmin, async (req, res) => {
             const productData = req.body;
             const lastProduct = await productCollection.find().sort({ _id: -1 }).limit(1).toArray()
 
