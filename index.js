@@ -13,7 +13,7 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json())
 app.use(cors({
-    origin: ['http://localhost:5173', 'hms-shop.firebaseapp.com', 'hms-shop.web.app']
+    origin: ['http://localhost:5173', 'https://hms-shop.firebaseapp.com', 'https://hms-shop.web.app']
 }))
 
 
@@ -520,7 +520,7 @@ async function run() {
 
         })
 
-        app.get('/details-confirm-order/:id', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/details-confirm-order/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await confirmOrderCollection.findOne(query)
