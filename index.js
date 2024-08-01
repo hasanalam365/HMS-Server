@@ -587,6 +587,32 @@ async function run() {
 
         })
 
+        //update stock product
+        app.put('/stockAdded/:productId', async (req, res) => {
+            const productId = parseInt(req.params.productId)
+            const stockAdded = parseInt(req.body.stockAmmounts)
+
+            const query = { productId: productId }
+            const checkProduct = await productCollection.findOne(query)
+
+            if (checkProduct) {
+
+                updateDoc = {
+                    $set: {
+                        stock: checkProduct.stock + stockAdded
+                    }
+                }
+                const result = await productCollection.updateOne(query, updateDoc)
+                res.send(result)
+            }
+
+            else {
+                res.send({ message: 'forbidden access' })
+            }
+
+
+        })
+
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
