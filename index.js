@@ -135,11 +135,26 @@ async function run() {
             res.send(result)
         })
 
+        //wishlist related apis
         app.get('/wishlist/:email', async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await wishlistCollection.find(query).toArray()
             res.send(result)
+        })
+
+        app.get('/wishlist/check/:id/:email', async (req, res) => {
+            const id = req.params.id;
+            const email = req.params.email;
+
+            const query = { productId: id, email: email }
+            const check = await wishlistCollection.findOne(query)
+            if (check) {
+                res.send(true)
+            }
+            else {
+                res.send(false)
+            }
         })
 
         app.put('/wishlist', async (req, res) => {
@@ -162,12 +177,15 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/wishlist/:id', async (req, res) => {
+        app.delete('/wishlist/delete/:id/:email', async (req, res) => {
 
             const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
+            const email = req.params.email
+
+            const query = { productId: id, email: email }
 
             const result = await wishlistCollection.deleteOne(query)
+
             res.send(result)
 
         })
