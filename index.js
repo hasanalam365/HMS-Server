@@ -94,7 +94,28 @@ async function run() {
 
         //products api
         app.get('/products', async (req, res) => {
-            const result = await productCollection.find().toArray()
+            const result = await productCollection.find().sort({ _id: -1 }).toArray();
+            res.send(result)
+
+        })
+
+        app.get('/all-products', async (req, res) => {
+
+            const { search } = req.query;
+            let query = {}
+            if (search) {
+                query = {
+                    $or: [
+                        {
+                            productId: new RegExp(search, 'i')
+                        },
+                        {
+                            title: new RegExp(search, 'i')
+                        },
+                    ]
+                };
+            }
+            const result = await productCollection.find(query).sort({ _id: -1 }).toArray();
             res.send(result)
         })
 
@@ -106,7 +127,13 @@ async function run() {
             res.send(result)
         })
 
-
+        //randomly product show in product details page
+        app.get('/products/category/:category', async (req, res) => {
+            const category = req.params.category;
+            const query = { category: category }
+            const result = await productCollection.find(query).limit(10).toArray()
+            res.send(result)
+        })
 
         app.get('/wishlist/:email', async (req, res) => {
             const email = req.params.email
@@ -590,7 +617,7 @@ async function run() {
         //update stock product
         app.put('/stockAdded/:productId', async (req, res) => {
             const productId = parseInt(req.params.productId)
-            const stockAdded = parseInt(req.body.stockAmmounts)
+            const stockAdded = parseInt(req.body.stockAmounts)
 
             const query = { productId: productId }
             const checkProduct = await productCollection.findOne(query)
