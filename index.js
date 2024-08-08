@@ -177,10 +177,11 @@ async function run() {
             res.send(result)
         })
 
+        //wishlist api
         app.delete('/wishlist/delete/:id', async (req, res) => {
 
             const id = req.params.id;
-            // const email = req.params.email
+
 
             const query = { _id: new ObjectId(id) }
 
@@ -190,6 +191,19 @@ async function run() {
 
         })
 
+        //product details remove wishlist api
+        app.delete('/wishlist/remove/:id/:email', async (req, res) => {
+
+            const id = req.params.id;
+            const email = req.params.email
+
+            const query = { productId: id, email: email }
+
+            const result = await wishlistCollection.deleteOne(query)
+
+            res.send(result)
+
+        })
 
         // get user cart api
         app.get('/addToCart/:email', async (req, res) => {
