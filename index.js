@@ -199,20 +199,82 @@ async function run() {
             res.send(result)
         })
 
-        // add to cart user item
-        // app.post('/addToCart', async (req, res) => {
-        //     const cartInfo = req.body
+        //quantity check user cart
+        app.get('/quantity/check/:id', async (req, res) => {
+            const id = req.params.id;
+            if (!id || id === 'undefined') {
+                return res.status(400).send({ error: 'Product ID is undefined' });
+            }
 
-        //     const result = await cartsCollection.insertOne(cartInfo)
-        //     res.send(result)
-        // })
+            try {
+                const query = { _id: new ObjectId(id) };
+                const result = await cartsCollection.findOne(query);
+                if (!result) {
+                    return res.status(404).send({ error: 'Product not found' });
+                }
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                res.status(500).send({ error: 'Internal Server Error' });
+            }
+        });
+
+        app.put('/quantity-plus/:id', async (req, res) => {
+            const id = req.params.id
+
+            const query = { _id: new ObjectId(id) }
+            const product = await cartsCollection.findOne(query)
+
+            if (!product) {
+                return res.send('Product not found')
+            }
+
+            try {
+
+                const updateDoc = {
+                    $set: {
+                        quantity: product.quantity + 1
+                    }
+                }
+
+                const result = await cartsCollection.updateOne(query, updateDoc)
+                res.send(result)
+
+            } catch (error) {
+                res.send(error.message)
+            }
+
+        })
+        app.put('/quantity-minus/:id', async (req, res) => {
+            const id = req.params.id
+
+            const query = { _id: new ObjectId(id) }
+            const product = await cartsCollection.findOne(query)
+
+            if (!product) {
+                return res.send('Product not found')
+            }
+
+            try {
+
+                const updateDoc = {
+                    $set: {
+                        quantity: product.quantity - 1
+                    }
+                }
+
+                const result = await cartsCollection.updateOne(query, updateDoc)
+                res.send(result)
+
+            } catch (error) {
+                res.send(error.message)
+            }
+
+        })
 
         app.post('/addToCart', async (req, res) => {
             const cartInfo = req.body
-
-
-
-            const query = { productId: cartInfo.productId }
+            const query = { productId: cartInfo.productId, email: cartInfo.email }
             const checkProduct = await cartsCollection.findOne(query)
             if (checkProduct) {
                 const options = { upsert: true }
@@ -231,10 +293,11 @@ async function run() {
         })
 
         // user cart item delete
-        app.delete('/addToCart/:id', async (req, res) => {
+        app.delete('/addToCart/:id/:email', async (req, res) => {
             const id = req.params.id
+            const email = req.params.email
 
-            const query = { _id: new ObjectId(id) }
+            const query = { _id: new ObjectId(id), email: email }
             const result = await cartsCollection.deleteOne(query)
             res.send(result)
         })
