@@ -177,12 +177,12 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/wishlist/delete/:id/:email', async (req, res) => {
+        app.delete('/wishlist/delete/:id', async (req, res) => {
 
             const id = req.params.id;
-            const email = req.params.email
+            // const email = req.params.email
 
-            const query = { productId: id, email: email }
+            const query = { _id: new ObjectId(id) }
 
             const result = await wishlistCollection.deleteOne(query)
 
@@ -254,7 +254,9 @@ async function run() {
             if (!product) {
                 return res.send('Product not found')
             }
-
+            if (product.quantity === 1) {
+                return res.send('At least One item is selected')
+            }
             try {
 
                 const updateDoc = {
