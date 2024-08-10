@@ -177,6 +177,8 @@ async function run() {
             res.send(result)
         })
 
+
+
         //wishlist api
         app.delete('/wishlist/delete/:id', async (req, res) => {
 
@@ -188,6 +190,64 @@ async function run() {
             const result = await wishlistCollection.deleteOne(query)
 
             res.send(result)
+
+        })
+
+        app.put('/whishlist/quantity-plus/:id', async (req, res) => {
+            const id = req.params.id
+
+            const query = { _id: new ObjectId(id) }
+            const wishlist = await wishlistCollection.findOne(query)
+
+            if (!wishlist) {
+                return res.send('wishlist not found')
+            }
+
+            try {
+
+                const updateDoc = {
+                    $set: {
+                        quantity: wishlist.quantity + 1
+                    }
+                }
+
+                const result = await wishlistCollection.updateOne(query, updateDoc)
+                res.send(result)
+
+            } catch (error) {
+                res.send(error.message)
+            }
+
+        })
+
+
+
+        app.put('/whishlist/quantity-minus/:id', async (req, res) => {
+            const id = req.params.id
+
+            const query = { _id: new ObjectId(id) }
+            const wishlist = await wishlistCollection.findOne(query)
+
+            if (!wishlist) {
+                return res.send('wishlist not found')
+            }
+            if (wishlist.quantity === 1) {
+                return res.send('At least One item is selected')
+            }
+            try {
+
+                const updateDoc = {
+                    $set: {
+                        quantity: wishlist.quantity - 1
+                    }
+                }
+
+                const result = await wishlistCollection.updateOne(query, updateDoc)
+                res.send(result)
+
+            } catch (error) {
+                res.send(error.message)
+            }
 
         })
 
