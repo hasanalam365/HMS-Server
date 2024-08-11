@@ -1,22 +1,16 @@
 const express = require('express')
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
-// const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-// const axios = require('axios');
 require('dotenv').config();
 const app = express()
 
 const port = process.env.PORT || 5000;
 
-
-
 app.use(express.json())
 app.use(cors({
     origin: ['http://localhost:5173', 'https://hms-shop.firebaseapp.com', 'https://hms-shop.web.app']
 }))
-
-
 
 
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.qvnsypp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -44,12 +38,9 @@ async function run() {
         const confirmOrderCollection = client.db('ShopDB').collection('confirmOrders');
         const orderStatusCollection = client.db('ShopDB').collection('orderStatus');
 
-
-
         //jwt related api
         app.post('/jwt', async (req, res) => {
             const user = req.body
-
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '3h' })
             res.send({ token })
         })
@@ -58,11 +49,9 @@ async function run() {
         //middlewares
         const verifyToken = (req, res, next) => {
             // console.log(req.headers.authorization)
-
             if (!req.headers.authorization) {
                 return res.status(401).send({ message: 'unauthorized access' })
             }
-
             const token = req.headers.authorization.split(' ')[1]
 
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -82,7 +71,6 @@ async function run() {
             const email = req.decoded.email;
             const query = { email: email }
             const user = await usersCollection.findOne(query)
-
             const isAdmin = user?.role === 'admin'
 
             if (!isAdmin) {
@@ -161,9 +149,7 @@ async function run() {
             const wishlistInfo = req.body
             const email = req.body.email
             const id = req.body.productId
-
             const query = { email: email, productId: id }
-
             const options = { upsert: true }
             const updateDoc = {
                 $set: {
@@ -178,24 +164,17 @@ async function run() {
         })
 
 
-
         //wishlist api
         app.delete('/wishlist/delete/:id', async (req, res) => {
-
             const id = req.params.id;
-
-
             const query = { _id: new ObjectId(id) }
-
             const result = await wishlistCollection.deleteOne(query)
-
             res.send(result)
 
         })
 
         app.put('/whishlist/quantity-plus/:id', async (req, res) => {
             const id = req.params.id
-
             const query = { _id: new ObjectId(id) }
             const wishlist = await wishlistCollection.findOne(query)
 
@@ -224,7 +203,6 @@ async function run() {
 
         app.put('/whishlist/quantity-minus/:id', async (req, res) => {
             const id = req.params.id
-
             const query = { _id: new ObjectId(id) }
             const wishlist = await wishlistCollection.findOne(query)
 
@@ -241,7 +219,6 @@ async function run() {
                         quantity: wishlist.quantity - 1
                     }
                 }
-
                 const result = await wishlistCollection.updateOne(query, updateDoc)
                 res.send(result)
 
@@ -253,14 +230,10 @@ async function run() {
 
         //product details remove wishlist api
         app.delete('/wishlist/remove/:id/:email', async (req, res) => {
-
             const id = req.params.id;
             const email = req.params.email
-
             const query = { productId: id, email: email }
-
             const result = await wishlistCollection.deleteOne(query)
-
             res.send(result)
 
         })
@@ -295,7 +268,6 @@ async function run() {
 
         app.put('/quantity-plus/:id', async (req, res) => {
             const id = req.params.id
-
             const query = { _id: new ObjectId(id) }
             const product = await cartsCollection.findOne(query)
 
@@ -321,7 +293,6 @@ async function run() {
         })
         app.put('/quantity-minus/:id', async (req, res) => {
             const id = req.params.id
-
             const query = { _id: new ObjectId(id) }
             const product = await cartsCollection.findOne(query)
 
@@ -372,13 +343,10 @@ async function run() {
         app.delete('/addToCart/:id/:email', async (req, res) => {
             const id = req.params.id
             const email = req.params.email
-
             const query = { _id: new ObjectId(id), email: email }
             const result = await cartsCollection.deleteOne(query)
             res.send(result)
         })
-
-
 
         // all users  api
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
@@ -394,14 +362,6 @@ async function run() {
 
 
         })
-
-        //profile show api
-        // app.get('/user/:email', async (req, res) => {
-        //     const email = req.params.email
-        //     const query = { email: email }
-        //     const result = await usersCollection.findOne(query)
-        //     res.send(result)
-        // })
 
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email
@@ -428,9 +388,7 @@ async function run() {
 
         app.post('/users', async (req, res) => {
             const userInfo = req.body
-
             const user = await usersCollection.findOne({ email: userInfo.email })
-
             if (user && user.email === userInfo.email) {
                 return res.send({ message: 'already exixts user' })
             }
@@ -441,7 +399,6 @@ async function run() {
 
         app.post('/newUser', async (req, res) => {
             const userInfo = req.body;
-
             const result = await usersCollection.insertOne(userInfo)
             res.send(result)
 
@@ -451,30 +408,45 @@ async function run() {
         app.put('/users-updated/:email', verifyToken, async (req, res) => {
             const userInfo = req.body
             const email = req.params.email
-
             const query = { email: email }
-
             const options = { uspsert: true }
+
+            if (userInfo.photoURL) {
+                const updateDoc = {
+                    $set: {
+                        email: userInfo?.email,
+                        displayName: userInfo?.name,
+                        photoURL: userInfo?.photoURL,
+                        phone: userInfo?.phone,
+
+                        division: userInfo?.division,
+                        district: userInfo?.district,
+                        thana: userInfo?.thana,
+                        address: userInfo?.address,
+                    }
+                }
+
+                const result = await usersCollection.updateOne(query, updateDoc, options)
+                return res.send(result)
+            }
 
             const updateDoc = {
                 $set: {
                     email: userInfo?.email,
                     displayName: userInfo?.name,
-                    photoURL: userInfo?.photoURL,
+
                     phone: userInfo?.phone,
 
                     division: userInfo?.division,
                     district: userInfo?.district,
                     thana: userInfo?.thana,
                     address: userInfo?.address,
-
-
-
                 }
             }
 
             const result = await usersCollection.updateOne(query, updateDoc, options)
             res.send(result)
+
 
         })
 
@@ -513,7 +485,7 @@ async function run() {
         app.put('/orders/:orderId', async (req, res) => {
             const orderId = req.params.orderId;
             const { name, phone, secondPhone, email, division, district, thana, address, currentLocation } = req.body
-            // console.log(orderId, name, phone, secondPhone, email, division, district, thana, address, currentLocation)
+
             const query = { orderId: orderId }
             const options = { upsert: true }
 
@@ -607,11 +579,9 @@ async function run() {
         })
 
         app.get('/stockProductCount/:productIds', async (req, res) => {
-
             const ids = req.params.productIds.split(',').map(id => parseInt(id.trim()))
             const query = { productId: { $in: ids } }
             const matchingProducts = await productCollection.find(query).toArray()
-
             res.send(matchingProducts)
 
         })
@@ -621,7 +591,6 @@ async function run() {
             const id = parseInt(req.params.productId);
             const quantity = parseInt(req.params.quantity)
             const query = { productId: id }
-
             const product = await productCollection.findOne(query)
 
             if (product) {
