@@ -91,6 +91,7 @@ async function run() {
 
             const { search } = req.query;
             let query = {}
+
             if (search) {
                 query = {
                     $or: [
@@ -764,6 +765,16 @@ async function run() {
             }
 
 
+        })
+
+        //stats api
+        app.get('/totalMoney', verifyToken, verifyAdmin, async (req, res) => {
+            const totalOrders = await confirmOrderCollection.find().toArray()
+            res.send(totalOrders)
+        })
+        app.get('/stat-allusers', verifyToken, verifyAdmin, async (req, res) => {
+            const result = await usersCollection.find().toArray()
+            res.send(result)
         })
 
         // await client.db("admin").command({ ping: 1 });
