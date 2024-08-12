@@ -116,6 +116,43 @@ async function run() {
             res.send(result)
         })
 
+        //add product
+        app.post('/add-product', verifyToken, verifyAdmin, async (req, res) => {
+            const productData = req.body;
+            const lastProduct = await productCollection.find().sort({ _id: -1 }).limit(1).toArray()
+
+            const lastProductId = lastProduct[0].productId
+
+            if (lastProduct.length > 0) {
+                const addProduct = await productCollection.insertOne(productData)
+                const query = { _id: new ObjectId(addProduct.insertedId) }
+                const options = { upsert: true }
+                const updateDoc = {
+                    $set: {
+                        productId: lastProductId + 1
+                    }
+                }
+
+                const result = await productCollection.updateOne(query, updateDoc, options)
+
+                res.send(result)
+
+            } else {
+                res.send({ message: 'undefined' })
+            }
+
+        })
+
+        //delete product
+        app.delete('/delete-product/:productId', verifyToken, verifyAdmin, async (req, res) => {
+            const productId = parseInt(req.params.productId);
+
+            const query = { productId: productId }
+            const result = await productCollection.deleteOne(query)
+            res.send(result)
+
+        })
+
         //randomly product show in product details page
         app.get('/products/category/:category', async (req, res) => {
             const category = req.params.category;
@@ -714,32 +751,7 @@ async function run() {
             res.send(result)
         })
 
-        //add product
-        app.post('/add-product', verifyToken, verifyAdmin, async (req, res) => {
-            const productData = req.body;
-            const lastProduct = await productCollection.find().sort({ _id: -1 }).limit(1).toArray()
 
-            const lastProductId = lastProduct[0].productId
-
-            if (lastProduct.length > 0) {
-                const addProduct = await productCollection.insertOne(productData)
-                const query = { _id: new ObjectId(addProduct.insertedId) }
-                const options = { upsert: true }
-                const updateDoc = {
-                    $set: {
-                        productId: lastProductId + 1
-                    }
-                }
-
-                const result = await productCollection.updateOne(query, updateDoc, options)
-
-                res.send(result)
-
-            } else {
-                res.send({ message: 'undefined' })
-            }
-
-        })
 
         //update stock product
         app.put('/stockAdded/:productId', async (req, res) => {
