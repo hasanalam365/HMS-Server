@@ -767,15 +767,23 @@ async function run() {
 
         })
 
-        //stats api
-        app.get('/totalMoney', verifyToken, verifyAdmin, async (req, res) => {
+        //stats api admin
+        app.get('/totalMoney', verifyToken, async (req, res) => {
             const totalOrders = await confirmOrderCollection.find().toArray()
             res.send(totalOrders)
         })
-        app.get('/stat-allusers', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/stat-allusers', verifyToken, async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
+        //stats api users
+        app.get('/user-stats/:email', verifyToken, async (req, res) => {
+            const email = req.params.email
+            const query = { "customerInfo.email": email }
+            const result = await confirmOrderCollection.find(query).toArray()
+            res.send(result)
+        })
+
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
