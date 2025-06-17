@@ -10,16 +10,11 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      // "https://hms-shop.firebaseapp.com",
-      // "https://hms-shop.web.app",
-    ],
+    origin: ["http://localhost:5173", "https://greentcstore.vercel.app"],
   })
 );
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 console.log(process.env.MONGO_USER);
-// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.qvnsypp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -33,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const productCollection = client.db("ShopDB").collection("products");
     const usersCollection = client.db("ShopDB").collection("users");
