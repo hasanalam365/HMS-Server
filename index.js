@@ -399,7 +399,7 @@ async function run() {
     });
 
     // all users  api
-    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/users", async (req, res) => {
       const { search } = req.query;
       let query = {};
       if (search) {
