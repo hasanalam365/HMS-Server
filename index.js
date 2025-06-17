@@ -1,23 +1,39 @@
 const express = require("express");
-const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const app = express();
+const cors = require("cors");
 
+const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(express.json());
+// ✅ CORS Middleware এখানে বসাও
+const allowedOrigins = [
+  "https://greentcstore.vercel.app",
+  "http://localhost:5173",
+];
 
 app.use(
   cors({
-    origin: ["https://greentcstore.vercel.app", "http://localhost:5173"],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
-// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB`;
+// ✅ Preflight requests allow করতে
+app.options("*", cors());
+
+// ✅ JSON parser
+app.use(express.json());
+
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB`;
 
 console.log(process.env.MONGO_USER);
 
@@ -33,7 +49,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
 
     const productCollection = client.db("ShopDB").collection("products");
     const usersCollection = client.db("ShopDB").collection("users");
@@ -95,6 +111,10 @@ async function run() {
     //products api
     app.get("/products", async (req, res) => {
       const result = await productCollection.find().sort({ _id: -1 }).toArray();
+      res.send(result);
+    });
+    app.get("/products-all", async (req, res) => {
+      const result = await productCollection.find().toArray();
       res.send(result);
     });
 
@@ -399,7 +419,7 @@ async function run() {
     });
 
     // all users  api
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const { search } = req.query;
       let query = {};
       if (search) {
