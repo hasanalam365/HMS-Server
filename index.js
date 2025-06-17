@@ -8,12 +8,16 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://greentcstore.vercel.app"],
+    origin: ["https://greentcstore.vercel.app", "http://localhost:5173"],
+    credentials: true,
   })
 );
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
+
 console.log(process.env.MONGO_USER);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -127,33 +131,33 @@ async function run() {
     //add product
     app.post("/add-product", verifyToken, verifyAdmin, async (req, res) => {
       const productData = req.body;
-      const lastProduct = await productCollection
-        .find()
-        .sort({ _id: -1 })
-        .limit(1)
-        .toArray();
 
-      const lastProductId = lastProduct[0].productId;
+      try {
+        const lastProduct = await productCollection
+          .find()
+          .sort({ productId: -1 }) // <-- Sort by productId, not _id
+          .limit(1)
+          .toArray();
 
-      if (lastProduct.length > 0) {
-        const addProduct = await productCollection.insertOne(productData);
-        const query = { _id: new ObjectId(addProduct.insertedId) };
-        const options = { upsert: true };
-        const updateDoc = {
-          $set: {
-            productId: lastProductId + 1,
-          },
+        const lastProductId =
+          lastProduct.length > 0 ? lastProduct[0].productId : 0;
+        const newProductId = lastProductId + 1;
+
+        const fullProduct = {
+          ...productData,
+          productId: newProductId,
         };
 
-        const result = await productCollection.updateOne(
-          query,
-          updateDoc,
-          options
-        );
+        const result = await productCollection.insertOne(fullProduct);
 
-        res.send(result);
-      } else {
-        res.send({ message: "undefined" });
+        res.send({
+          success: true,
+          insertedId: result.insertedId,
+          productId: newProductId,
+        });
+      } catch (err) {
+        console.error("Add Product Error:", err);
+        res.status(500).send({ success: false, error: err.message });
       }
     });
 
