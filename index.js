@@ -16,7 +16,8 @@ app.use(
   })
 );
 
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB`;
 
 console.log(process.env.MONGO_USER);
 
