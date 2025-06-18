@@ -1,39 +1,24 @@
 const express = require("express");
+const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const cors = require("cors");
-
 const app = express();
+
 const port = process.env.PORT || 5000;
 
-// ✅ CORS Middleware এখানে বসাও
-const allowedOrigins = [
-  "https://greentcstore.vercel.app",
-  "http://localhost:5173",
-];
-
+app.use(express.json());
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: [
+      "http://localhost:5173",
+      "https://hms-shop.firebaseapp.com",
+      "https://hms-shop.web.app",
+    ],
   })
 );
 
-// ✅ Preflight requests allow করতে
-app.options("*", cors());
-
-// ✅ JSON parser
-app.use(express.json());
-
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
-// const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB`;
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&tls=true`;
 
 console.log(process.env.MONGO_USER);
 
@@ -113,10 +98,6 @@ async function run() {
       const result = await productCollection.find().sort({ _id: -1 }).toArray();
       res.send(result);
     });
-    app.get("/products-all", async (req, res) => {
-      const result = await productCollection.find().toArray();
-      res.send(result);
-    });
 
     app.get("/all-products", async (req, res) => {
       const { search } = req.query;
@@ -152,33 +133,33 @@ async function run() {
     //add product
     app.post("/add-product", verifyToken, verifyAdmin, async (req, res) => {
       const productData = req.body;
+      const lastProduct = await productCollection
+        .find()
+        .sort({ _id: -1 })
+        .limit(1)
+        .toArray();
 
-      try {
-        const lastProduct = await productCollection
-          .find()
-          .sort({ productId: -1 }) // <-- Sort by productId, not _id
-          .limit(1)
-          .toArray();
+      const lastProductId = lastProduct[0].productId;
 
-        const lastProductId =
-          lastProduct.length > 0 ? lastProduct[0].productId : 0;
-        const newProductId = lastProductId + 1;
-
-        const fullProduct = {
-          ...productData,
-          productId: newProductId,
+      if (lastProduct.length > 0) {
+        const addProduct = await productCollection.insertOne(productData);
+        const query = { _id: new ObjectId(addProduct.insertedId) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            productId: lastProductId + 1,
+          },
         };
 
-        const result = await productCollection.insertOne(fullProduct);
+        const result = await productCollection.updateOne(
+          query,
+          updateDoc,
+          options
+        );
 
-        res.send({
-          success: true,
-          insertedId: result.insertedId,
-          productId: newProductId,
-        });
-      } catch (err) {
-        console.error("Add Product Error:", err);
-        res.status(500).send({ success: false, error: err.message });
+        res.send(result);
+      } else {
+        res.send({ message: "undefined" });
       }
     });
 
@@ -608,33 +589,55 @@ async function run() {
     });
 
     //order Status related api
-    app.get("/orderStatus", async (req, res) => {
-      const result = await orderStatusCollection.find().toArray();
-      res.send(result);
-    });
+    // app.get("/orderStatus", async (req, res) => {
+    //   const result = await orderStatusCollection.find().toArray();
+    //   res.send(result);
+    // });
 
+    // app.get("/orderStatus/:email", verifyToken, async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const result = await orderStatusCollection.find(query).toArray();
+    //   res.send(result);
+    // });
+    // app.post("/orderStatus", async (req, res) => {
+    //   const status = req.body;
+    //   const result = await orderStatusCollection.insertOne(status);
+    //   res.send(result);
+    // });
+
+    // app.patch("/orderStatus/:orderId", async (req, res) => {
+    //   const orderId = req.params.orderId;
+    //   const query = { orderId: orderId };
+    //   const updateDoc = {
+    //     $set: {
+    //       status: "confirmed",
+    //     },
+    //   };
+    //   const result = await orderStatusCollection.updateOne(query, updateDoc);
+    //   res.send(result);
+    // });
+    // Get order status by email (User)
     app.get("/orderStatus/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-      const query = { email: email };
+      const query = { email };
       const result = await orderStatusCollection.find(query).toArray();
       res.send(result);
     });
-    app.post("/orderStatus", async (req, res) => {
-      const status = req.body;
-      const result = await orderStatusCollection.insertOne(status);
-      res.send(result);
-    });
+
+    // Admin: Update order status step by step
 
     app.patch("/orderStatus/:orderId", async (req, res) => {
       const orderId = req.params.orderId;
-      const query = { orderId: orderId };
-      const updateDoc = {
-        $set: {
-          status: "confirmed",
-        },
-      };
-      const result = await orderStatusCollection.updateOne(query, updateDoc);
-      res.send(result);
+      const { status } = req.body;
+      const result = await orderStatusCollection.updateOne(
+        { orderId },
+        { $set: { status } }
+      );
+      res.send({
+        matched: result.matchedCount,
+        modified: result.modifiedCount,
+      });
     });
 
     //order related api
