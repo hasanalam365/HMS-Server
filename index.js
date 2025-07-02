@@ -14,13 +14,14 @@ app.use(
       "http://localhost:5173",
       "https://hms-shop.firebaseapp.com",
       "https://hms-shop.web.app",
+      "https://greenit-c53f2.web.app",
+      "https://nagreentech.com",
     ],
+    credentials: true,
   })
 );
 
-const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.xg4r4gh.mongodb.net/ShopDB?retryWrites=true&w=majority&tls=true`;
-
-console.log(process.env.MONGO_USER);
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.qvnsypp.mongodb.net/ShopDB?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -50,6 +51,8 @@ async function run() {
       .db("ShopDB")
       .collection("confirmOrders");
     const orderStatusCollection = client.db("ShopDB").collection("orderStatus");
+    const blogCollection = client.db("ShopDB").collection("blogs");
+    const messagesCollection = client.db("ShopDB").collection("messages");
 
     //jwt related api
     app.post("/jwt", async (req, res) => {
@@ -174,6 +177,16 @@ async function run() {
         const query = { productId: productId };
         const result = await productCollection.deleteOne(query);
         res.send(result);
+      }
+    );
+
+    //updated product
+    app.put(
+      "/update-product/:id",
+
+      async (req, res) => {
+        const productId = req.params.id;
+        console.log(productId);
       }
     );
 
@@ -589,55 +602,33 @@ async function run() {
     });
 
     //order Status related api
-    // app.get("/orderStatus", async (req, res) => {
-    //   const result = await orderStatusCollection.find().toArray();
-    //   res.send(result);
-    // });
-
-    // app.get("/orderStatus/:email", verifyToken, async (req, res) => {
-    //   const email = req.params.email;
-    //   const query = { email: email };
-    //   const result = await orderStatusCollection.find(query).toArray();
-    //   res.send(result);
-    // });
-    // app.post("/orderStatus", async (req, res) => {
-    //   const status = req.body;
-    //   const result = await orderStatusCollection.insertOne(status);
-    //   res.send(result);
-    // });
-
-    // app.patch("/orderStatus/:orderId", async (req, res) => {
-    //   const orderId = req.params.orderId;
-    //   const query = { orderId: orderId };
-    //   const updateDoc = {
-    //     $set: {
-    //       status: "confirmed",
-    //     },
-    //   };
-    //   const result = await orderStatusCollection.updateOne(query, updateDoc);
-    //   res.send(result);
-    // });
-    // Get order status by email (User)
-    app.get("/orderStatus/:email", verifyToken, async (req, res) => {
-      const email = req.params.email;
-      const query = { email };
-      const result = await orderStatusCollection.find(query).toArray();
+    app.get("/orderStatus", async (req, res) => {
+      const result = await orderStatusCollection.find().toArray();
       res.send(result);
     });
 
-    // Admin: Update order status step by step
+    app.get("/orderStatus/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await orderStatusCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.post("/orderStatus", async (req, res) => {
+      const status = req.body;
+      const result = await orderStatusCollection.insertOne(status);
+      res.send(result);
+    });
 
     app.patch("/orderStatus/:orderId", async (req, res) => {
       const orderId = req.params.orderId;
-      const { status } = req.body;
-      const result = await orderStatusCollection.updateOne(
-        { orderId },
-        { $set: { status } }
-      );
-      res.send({
-        matched: result.matchedCount,
-        modified: result.modifiedCount,
-      });
+      const query = { orderId: orderId };
+      const updateDoc = {
+        $set: {
+          status: "confirmed",
+        },
+      };
+      const result = await orderStatusCollection.updateOne(query, updateDoc);
+      res.send(result);
     });
 
     //order related api
@@ -841,6 +832,42 @@ async function run() {
       const email = req.params.email;
       const query = { "customerInfo.email": email };
       const result = await confirmOrderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //blog related api
+    app.get("/blogs", async (req, res) => {
+      const searchTerm = req.query.searchTerm; // Extract the search term from the query parameters, if provided
+
+      let query = {};
+      if (searchTerm) {
+        // If a search term is provided, create a query for partial, case-insensitive matching
+        query = { title: { $regex: searchTerm, $options: "i" } };
+      }
+
+      try {
+        const result = await blogCollection.find(query).toArray(); // Fetch all or filtered blogs
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ error: "Failed to fetch blogs" });
+      }
+    });
+
+    app.post("/add-blog", async (req, res) => {
+      const blogContent = req.body;
+      const result = await blogCollection.insertOne(blogContent);
+      res.send(result);
+    });
+
+    //send message
+    app.get("/allMessages", async (req, res) => {
+      const result = await messagesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/sendMessage", async (req, res) => {
+      const message = req.body;
+      const result = await messagesCollection.insertOne(message);
       res.send(result);
     });
 
