@@ -913,6 +913,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/deleteMessage/:id", async (req, res) => {
+      const messageId = req.params.id;
+      const query = { _id: new ObjectId(messageId) };
+      const result = await messagesCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
