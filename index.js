@@ -102,6 +102,35 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/products-updated", verifyToken, verifyAdmin, async (req, res) => {
+      const { search, page = 1, limit = 10 } = req.query;
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+
+      let query = {};
+      if (search) {
+        query = {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$productId" },
+              regex: search,
+              options: "i",
+            },
+          },
+        };
+      }
+
+      const totalCount = await productCollection.countDocuments(query);
+      const result = await productCollection
+        .find(query)
+        .sort({ productId: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .toArray();
+
+      res.send({ totalCount, result });
+    });
+
     app.get("/all-products", async (req, res) => {
       const { search } = req.query;
       let query = {};
