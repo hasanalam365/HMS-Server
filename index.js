@@ -161,6 +161,13 @@ async function run() {
       const result = await productCollection.findOne(query);
       res.send(result);
     });
+    //product edited
+    app.get("/product/edit/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productCollection.findOne(query);
+      res.send(result);
+    });
 
     //add product
     app.post("/add-product", verifyToken, verifyAdmin, async (req, res) => {
@@ -211,11 +218,17 @@ async function run() {
 
     //updated product
     app.put(
-      "/update-product/:id",
-
+      "/update-product/:productId",
+      verifyToken,
+      verifyAdmin,
       async (req, res) => {
-        const productId = req.params.id;
-        console.log(productId);
+        const productId = parseInt(req.params.productId);
+        const update = req.body;
+        const result = await productCollection.updateOne(
+          { productId },
+          { $set: update }
+        );
+        res.send(result);
       }
     );
 
